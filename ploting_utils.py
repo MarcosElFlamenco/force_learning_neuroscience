@@ -2,7 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_force_learning(time, x_hist, z_hist, w_norm_hist, target_hist):
+def plot_force_learning(time, x_hist, z_hist, w_norm_hist, target_hist,T_total=3000):
+    learning_start = 500
+    learning_end = T_total - learning_start
+
     fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
 
     ax1 = axes[0]
@@ -10,26 +13,26 @@ def plot_force_learning(time, x_hist, z_hist, w_norm_hist, target_hist):
     ax1.plot(time, z_hist, 'r', label='Output z(t)')
     ax1.set_title("Figure 2: FORCE Learning")
     ax1.set_ylabel("Output")
-    ax1.axvline(500, color='k', linestyle='--')
-    ax1.axvline(2500, color='k', linestyle='--')
+    ax1.axvline(learning_start, color='k', linestyle='--')
+    ax1.axvline(learning_end, color='k', linestyle='--')
     ax1.legend(loc='upper right')
-    ax1.text(250, 1.5, 'Spontaneous', ha='center')
-    ax1.text(1500, 1.5, 'Learning', ha='center')
-    ax1.text(2750, 1.5, 'Test', ha='center')
+    ax1.text(learning_start / 2, 1.5, 'Spontaneous', ha='center')
+    ax1.text((learning_start + learning_end) / 2, 1.5, 'Learning', ha='center')
+    ax1.text((learning_end + T_total) / 2, 1.5, 'Test', ha='center')
 
     ax2 = axes[1]
     for k in range(5):
         ax2.plot(time, x_hist[:, k], linewidth=0.8)
     ax2.set_ylabel("Activity r(t)")
-    ax2.axvline(500, color='k', linestyle='--')
-    ax2.axvline(2500, color='k', linestyle='--')
+    ax2.axvline(learning_start, color='k', linestyle='--')
+    ax2.axvline(learning_end, color='k', linestyle='--')
 
     ax3 = axes[2]
     ax3.plot(time, w_norm_hist, 'orange', label='|dw/dt|')
     ax3.set_ylabel("Weight change")
     ax3.set_xlabel("Time (ms)")
-    ax3.axvline(500, color='k', linestyle='--')
-    ax3.axvline(2500, color='k', linestyle='--')
+    ax3.axvline(learning_start, color='k', linestyle='--')
+    ax3.axvline(learning_end, color='k', linestyle='--')
     ax3.legend()
 
     plt.tight_layout()
@@ -93,7 +96,7 @@ def plot_feedback_analysis_multiple_runs(file_name, treatment_function, ylabel='
             time, x_hist, z_hist, w_norm_hist, target_hist = trial_data
             value = treatment_function(time, x_hist, z_hist, w_norm_hist, target_hist)
             treated_values.append(value)
-        
+        print(f'ft={ft},samples: {len(treated_values)}') 
         means.append(np.mean(treated_values))
         stds.append(np.std(treated_values))
     

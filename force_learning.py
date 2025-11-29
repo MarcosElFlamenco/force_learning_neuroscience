@@ -2,7 +2,7 @@ import numpy as np
 import numpy.random as rnd
 
 N = 1000
-tau = 10.0
+tau = 1.0
 dt = 1.0  
 g = 1.5   
 p = 0.1   
@@ -24,7 +24,8 @@ def triangle_wave(t, period=600.0):
     return 2.0 * np.abs(2.0 * phase - 1.0) - 1.0
 
 
-def run_force_learning(T_total=3000, learning_start=500, learning_end=2500, feedback_coefficent = 1):
+def run_force_learning(T_total=3000, learning_start=500, feedback_amplitude = 1.0,update_output = 0.0):
+    learning_end = T_total - learning_start
     time_points = np.arange(0, T_total, dt)
     T_steps = len(time_points)
     
@@ -64,17 +65,19 @@ def run_force_learning(T_total=3000, learning_start=500, learning_end=2500, feed
             
         else:
             w_norm_hist[i] = 0.0
-        
-        feedback = z_current 
-        
-        recurrence = g * np.dot(J, r)
+
+        z_new = np.dot(w_current, r)
+
+        feedback = z_current * (1-update_output) + z_new * update_output
         feedback_term = w_fb * feedback
         
-        dx = -x + recurrence + feedback_term #you want x + dx = recurrence + feedback term
-        dx = feedback_coefficent * dx
-        x = x + dx * (dt / tau)
+        recurrence = g * np.dot(J, r)
+        circuit_input = recurrence + feedback_term
+        dx = recurrence + feedback_term - x #you want x + dx = recurrence + feedback term
+        x += dx * feedback_amplitude
+        #dx = feedback_coefficent * dx
+        #r = np.tanh(x)
         r = np.tanh(x)
-        
         x_hist[i] = x
     
     return time_points, x_hist, z_hist, w_norm_hist, target_hist
