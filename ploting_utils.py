@@ -2,7 +2,36 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_force_learning(time, x_hist, z_hist, w_norm_hist, target_hist,T_total=3000):
+def plot_force_learning(time, x_hist, z_hist, w_norm_hist, target_hist,title="Force learning",T_total=3000):
+    learning_start = 500
+    learning_end = T_total - learning_start
+
+    fig, axes = plt.subplots(2, 1, figsize=(12, 7), sharex=True)
+
+    ax1 = axes[0]
+    ax1.plot(time, target_hist, 'g--', label='Target', alpha=0.6)
+    ax1.plot(time, z_hist, 'r', label='Output z(t)')
+    ax1.set_title(title)
+    ax1.set_ylabel("Output")
+    ax1.axvline(learning_start, color='k', linestyle='--')
+    ax1.axvline(learning_end, color='k', linestyle='--')
+    ax1.legend(loc='upper right')
+    ax1.text(learning_start / 2, 1.5, 'Spontaneous', ha='center')
+    ax1.text((learning_start + learning_end) / 2, 1.5, 'Learning', ha='center')
+    ax1.text((learning_end + T_total) / 2, 1.5, 'Test', ha='center')
+
+    ax3 = axes[1]
+    ax3.plot(time, w_norm_hist, 'orange', label='|dw/dt|')
+    ax3.set_ylabel("Weight change")
+    ax3.set_xlabel("Time (ms)")
+    ax3.axvline(learning_start, color='k', linestyle='--')
+    ax3.axvline(learning_end, color='k', linestyle='--')
+    ax3.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_force_learning_original(time, x_hist, z_hist, w_norm_hist, target_hist,T_total=3000):
     learning_start = 500
     learning_end = T_total - learning_start
 
@@ -37,6 +66,7 @@ def plot_force_learning(time, x_hist, z_hist, w_norm_hist, target_hist,T_total=3
 
     plt.tight_layout()
     plt.show()
+
 
 def plot_feedback_term_exploration(ft_range,differences,k = 7):
     output = np.zeros(len(differences))
@@ -121,3 +151,87 @@ def plot_feedback_analysis_multiple_runs(file_name, treatment_function, ylabel='
     plt.tight_layout()
     
     return fig, ax, ft_range, means, stds
+
+
+def plot_force_learning_averaged(file_name, ft_value, T_total=3000):
+    """
+    Plot FORCE learning results averaged across multiple trials for a specific feedback coefficient.
+    Shows mean with standard deviation bands.
+    
+    Parameters:
+    - file_name: Path to .npy file with experiment results
+    - ft_value: Feedback coefficient value to plot
+    - T_total: Total time for the experiment (for phase markers)
+    """
+    # Load the data
+    data = np.load(file_name, allow_pickle=True).item()
+    results = data['results']
+    
+    # Find the closest ft value in the data
+    ft_range = data['ft_range']
+    closest_ft = min(ft_range, key=lambda x: abs(x - ft_value))
+    
+    if abs(closest_ft - ft_value) > 1e-6:
+        print(f'Warning: Requested ft={ft_value}, using closest available ft={closest_ft}')
+    
+    if closest_ft not in results:
+        print(f'Error: No results found for ft={closest_ft}')
+        return
+    
+    trials = results[closest_ft]
+    print(f'Plotting averaged results for ft={closest_ft} with {len(trials)} trials')
+    
+    # Extract data from all trials
+    time = trials[0][0]  # Time should be the same for all trials
+    
+    # Stack all trials' data
+    z_hists = np.array([trial[2] for trial in trials])
+    x_hists = np.array([trial[1] for trial in trials])
+    w_norm_hists = np.array([trial[3] for trial in trials])
+    target_hist = trials[0][4]  # Target is the same for all trials
+    
+    # Calculate means and stds
+    z_mean = np.mean(z_hists, axis=0)
+    z_std = np.std(z_hists, axis=0)
+    
+    x_mean = np.mean(x_hists, axis=0)
+    x_std = np.std(x_hists, axis=0)
+    
+    w_norm_mean = np.mean(w_norm_hists, axis=0)
+    w_norm_std = np.std(w_norm_hists, axis=0)
+    
+    # Create the plot
+    learning_start = 500
+    learning_end = T_total - learning_start
+
+    fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+
+    # Plot 1: Output z(t) vs Target
+    ax1 = axes[0]
+    ax1.plot(time, target_hist, 'g--', label='Target', alpha=0.6, linewidth=2)
+    ax1.plot(time, z_mean, 'r', label=f'Output z(t) (mean, n={len(trials)})', linewidth=2)
+    ax1.fill_between(time, z_mean - z_std, z_mean + z_std, color='red', alpha=0.2, label='± 1 std')
+    ax1.set_title(f"FORCE Learning (Averaged, ft={closest_ft:.4f})")
+    ax1.set_ylabel("Output")
+    ax1.axvline(learning_start, color='k', linestyle='--')
+    ax1.axvline(learning_end, color='k', linestyle='--')
+    ax1.legend(loc='upper right')
+    ax1.text(learning_start / 2, ax1.get_ylim()[1] * 0.9, 'Spontaneous', ha='center')
+    ax1.text((learning_start + learning_end) / 2, ax1.get_ylim()[1] * 0.9, 'Learning', ha='center')
+    ax1.text((learning_end + T_total) / 2, ax1.get_ylim()[1] * 0.9, 'Test', ha='center')
+
+    # Plot 2: Weight change
+    ax2 = axes[1]
+    ax2.plot(time, w_norm_mean, 'orange', label='|dw/dt| (mean)', linewidth=2)
+    ax2.fill_between(time, w_norm_mean - w_norm_std, w_norm_mean + w_norm_std, 
+                    color='orange', alpha=0.2, label='± 1 std')
+    ax2.set_ylabel("Weight change")
+    ax2.set_xlabel("Time (ms)")
+    ax2.axvline(learning_start, color='k', linestyle='--')
+    ax2.axvline(learning_end, color='k', linestyle='--')
+    ax2.legend()
+
+    plt.tight_layout()
+    plt.show()
+    
+    return fig, axes

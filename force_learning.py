@@ -106,7 +106,7 @@ def feedback_term_exploration(max_feedback_term = 1.0, number_of_runs = 10, save
             print(f'Progress saved to {save_file}')
     
         ft = ft_range[i]
-        time, x_hist, z_hist, w_norm_hist, target_hist = force_learning.run_force_learning(feedback_coefficent = ft)
+        time, x_hist, z_hist, w_norm_hist, target_hist = force_learning.run_force_learning(update_output = ft)
         results.append((time, x_hist, z_hist, w_norm_hist, target_hist))
     
     # Final save
@@ -180,7 +180,7 @@ def feedback_term_multiple_runs(max_feedback_term=1.0, num_coefficients=10, num_
         if trials_needed == 0:
             continue  # Already have all trials for this ft
         
-        print(f'\n--- Coefficient {i+1}/{len(ft_range)}: ft={ft:.4f} ---')
+        print(f'\n--- Coefficient {i+1}/{len(ft_range)}: update_output={ft:.4f} ---')
         if len(existing_trials) > 0:
             print(f'  (Found {len(existing_trials)} existing trials, running {trials_needed} more)')
         
@@ -190,7 +190,7 @@ def feedback_term_multiple_runs(max_feedback_term=1.0, num_coefficients=10, num_
             print(f'  Trial {trial+1}/{num_trials}', end='')
             
             time, x_hist, z_hist, w_norm_hist, target_hist = run_force_learning(
-                feedback_coefficent=ft
+                update_output=ft
             )
             trials_for_this_ft.append((time, x_hist, z_hist, w_norm_hist, target_hist))
             experiments_run += 1
