@@ -153,7 +153,7 @@ def plot_feedback_analysis_multiple_runs(file_name, treatment_function, ylabel='
     return fig, ax, ft_range, means, stds
 
 
-def plot_force_learning_averaged(file_name, ft_value, T_total=3000):
+def plot_force_learning_averaged(file_name, ft_value, T_total=3000,save_file = None):
     """
     Plot FORCE learning results averaged across multiple trials for a specific feedback coefficient.
     Shows mean with standard deviation bands.
@@ -232,6 +232,8 @@ def plot_force_learning_averaged(file_name, ft_value, T_total=3000):
     ax2.legend()
 
     plt.tight_layout()
+    if save_file is not None:
+        plt.savefig(save_file)
     plt.show()
     
     return fig, axes

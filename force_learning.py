@@ -116,7 +116,7 @@ def feedback_term_exploration(max_feedback_term = 1.0, number_of_runs = 10, save
     
     return results
 
-def feedback_term_multiple_runs(max_feedback_term=1.0, num_coefficients=10, num_trials=5, save_file='feedback_multiple_runs.npy', checkpoint_frequency=5):
+def feedback_term_multiple_runs(max_feedback_term=1.0, min_feedback_term=0.0, num_coefficients=10, num_trials=5, save_file='feedback_multiple_runs.npy', checkpoint_frequency=5):
     """
     Run multiple experiments across different feedback coefficients, with multiple trials per coefficient.
     
@@ -139,8 +139,8 @@ def feedback_term_multiple_runs(max_feedback_term=1.0, num_coefficients=10, num_
     import os
     
     # Generate range of feedback coefficients
-    dft = max_feedback_term / num_coefficients
-    ft_range = np.arange(0, max_feedback_term, dft)
+    dft = (max_feedback_term - min_feedback_term)/ num_coefficients
+    ft_range = np.arange(min_feedback_term, max_feedback_term, dft)
     
     # Load existing results if file exists and preserve relevant data
     results = {}
